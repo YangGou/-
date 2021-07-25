@@ -1,0 +1,38 @@
+/*
+dataset: (b, n, 3)
+temp: (b, n)
+idxs: (b, m)
+*/
+void farthest_point_sampling_cpu(int b, int n, int m, const float *dataset, float *temp, int *idxs){
+    const float * const dataset_start = dataset;
+    float * const temp_start = temp;
+    int * const idxs_start = idxs;
+    for(int i=0; i<b; ++i){
+        dataset = dataset_start + i*n*3;
+        temp = temp_start + i*n;
+        idxs = idxs_start + i*m;
+        int old = 0;
+        idxs[0] = old;
+        for(int j=1; j<m; ++j){
+            int besti = 0;
+            float best = -1;
+            float x1 = dataset[old * 3 + 0];
+            float y1 = dataset[old * 3 + 1];
+            float z1 = dataset[old * 3 + 2];
+            for(int k=0; k<n; ++k){
+                float x2, y2, z2;
+                x2 = dataset[k*3+0];
+                y2 = dataset[k*3+1];
+                z2 = dataset[k*3+2];
+
+                float d = (x2 - x1)*(x2 - x1)+(y2 - y1)*(y2 - y1)+(z2 - z1)*(z2 - z1);
+                float d2 = min(d, temp[k]);
+                temp[k] = d2;
+                besti = d2 > best ? k : besti;
+                best = d2 > best ? d2 : best;
+            }
+            old = besti;
+            idxs[j] = old;
+        }
+    }
+}
